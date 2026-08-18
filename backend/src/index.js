@@ -16,10 +16,44 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 app.use(express.json());
+
+const normalizeOrigin = (value) => {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+    return parsed.origin;
+  } catch (error) {
+    return value.replace(/\/$/, "");
+  }
+};
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "https://habitflow.ronakcodes.in",
+]
+  .filter(Boolean)
+  .map(normalizeOrigin);
+
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.CLIENT_URL || "*");
+  const requestOrigin = req.headers.origin;
+  const normalizedRequestOrigin = requestOrigin ? normalizeOrigin(requestOrigin) : null;
+  const isAllowedOrigin = normalizedRequestOrigin
+    ? allowedOrigins.includes(normalizedRequestOrigin)
+    : true;
+
+  const responseOrigin = isAllowedOrigin
+    ? normalizedRequestOrigin || process.env.CLIENT_URL || "*"
+    : process.env.CLIENT_URL || "*";
+
+  res.header("Access-Control-Allow-Origin", responseOrigin);
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Vary", "Origin");
+
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
