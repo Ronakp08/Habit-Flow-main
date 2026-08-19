@@ -90,6 +90,7 @@ const createDefaultSuperAdmin = async () => {
   console.log(`Default super admin created: ${normalizedEmail}`);
 };
 
+/*
 sequelize
   .sync({ alter: true })
   .then(async () => {
@@ -97,6 +98,7 @@ sequelize
     await createDefaultSuperAdmin();
   })
   .catch((err) => console.error("Sync error:", err));
+*/
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "HabitFlow API" });
